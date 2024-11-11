@@ -15,3 +15,4 @@ frontendImage="Debian:debian-10:10:latest"
 backendImage=$frontendImage
 sshUser="azureuser"
 sshKeyPath="$HOME/wit/ppc/.ssh/id_ed25519.pub"  # Ścieżka do klucza SSH
+sshPrivKeyPath="$HOME/wit/ppc/.ssh/id_ed25519"  # Ścieżka do klucza SSH

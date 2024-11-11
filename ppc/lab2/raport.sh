@@ -37,10 +37,29 @@ for nsg in "$nsgFrontend" "$nsgBackend"; do
 done
 
 echo "=== Połączenia Peering między sieciami wirtualnymi ==="
-# Wyświetlanie informacji o peeringu między sieciami
 for vnet in "$vnetFrontend" "$vnetBackend"; do
     echo "Połączenia Peering dla sieci wirtualnej ($vnet):"
-    az network vnet peering list --resource-group $resourceGroup --vnet-name $vnet --query "[].{Name:name, RemoteNetwork:remoteVirtualNetwork.id, AllowForwardedTraffic:allowForwardedTraffic, AllowGatewayTransit:allowGatewayTransit, UseRemoteGateways:useRemoteGateways}" --output table
+
+    # Nagłówki tabeli
+    printf "%-25s %-25s %-20s %-20s %-20s\n" "Name" "RemoteNetwork" "AllowForwardedTraffic" "AllowGatewayTransit" "UseRemoteGateways"
+    echo "---------------------------------------------------------------------------------------------------------------"
+
+    # Pobieranie i formatowanie danych peeringu
+    az network vnet peering list \
+      --resource-group $resourceGroup \
+      --vnet-name $vnet \
+      --query "[].{Name:name, RemoteNetwork:remoteVirtualNetwork.id, AllowForwardedTraffic:allowForwardedTraffic, AllowGatewayTransit:allowGatewayTransit, UseRemoteGateways:useRemoteGateways}" \
+      --output tsv | \
+      awk '{
+        for (i=1; i<=NF; i++) {
+          # Jeśli kolumna zawiera "/", przytnij tylko do części po ostatnim "/"
+          if ($i ~ /\//) {
+            sub(".*/", "", $i)
+          }
+        }
+        # Wydrukuj przetworzoną linię z wyrównaniem kolumn
+        printf "%-25s %-25s %-20s %-20s %-20s\n", $1, $2, $3, $4, $5
+      }'
     echo ""
 done
 
@@ -69,7 +88,7 @@ echo "Publiczny adres IP maszyny frontendowej: $publicIpFrontend"
 # Test połączenia (ping) z maszyny frontendowej do backendowej
 echo "Testowanie połączenia z maszyny frontendowej do backendowej..."
 
-ssh -i $sshKeyPath $sshUser@$publicIpFrontend "ping -c 4 $privateIpBackend"
+ssh -i $sshPrivKeyPath $sshUser@$publicIpFrontend "ping -c 4 $privateIpBackend"
 
 if [ $? -eq 0 ]; then
     echo "Połączenie między maszynami zostało pomyślnie nawiązane."
