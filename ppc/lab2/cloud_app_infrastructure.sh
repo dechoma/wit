@@ -75,7 +75,7 @@ az vm create \
   --image $backendImage \
   --size Standard_B1s \
   --admin-username $sshUser \
-  --generate-ssh-keys
+  --ssh-key-values $sshKeyPath
 
 # Utworzenie połączenia Peering między VNetFrontend i VNetBackend
 az network vnet peering create \
@@ -91,3 +91,5 @@ az network vnet peering create \
   --vnet-name $vnetBackend \
   --remote-vnet $(az network vnet show --resource-group $resourceGroup --name $vnetFrontend --query id -o tsv) \
   --allow-vnet-access
+
+echo "==== Deployment zakończony ==="
